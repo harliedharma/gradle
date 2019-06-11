@@ -176,7 +176,7 @@ class WatchServiceRegistrar implements FileWatcherListener {
                 // Windows at least will sometimes throw odd exceptions like java.nio.file.AccessDeniedException
                 // if the file gets deleted while the watch is being set up.
                 // So, we just ignore the exception if the dir doesn't exist anymore
-                if (!Files.exists(dir)) {
+                if (!dir.toFile().exists()) {
                     // return silently when directory doesn't exist
                     LOG.debug("Return silently since directory doesn't exist.");
                     return;

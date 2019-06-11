@@ -57,7 +57,7 @@ public class LockFileReaderWriter {
     public void writeLockFile(String configurationName, List<String> resolvedModules) {
         checkValidRoot(configurationName);
 
-        if (!Files.exists(lockFilesRoot)) {
+        if (!lockFilesRoot.toFile().exists()) {
             try {
                 Files.createDirectories(lockFilesRoot);
             } catch (IOException e) {
@@ -80,7 +80,7 @@ public class LockFileReaderWriter {
 
         try {
             Path lockFile = lockFilesRoot.resolve(decorate(configurationName) + FILE_SUFFIX);
-            if (Files.exists(lockFile)) {
+            if (lockFile.toFile().exists()) {
                 List<String> lines = Files.readAllLines(lockFile, CHARSET);
                 filterNonModuleLines(lines);
                 return lines;

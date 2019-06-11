@@ -71,16 +71,14 @@ class WatchServiceRegistrarTest extends Specification {
         WatchService watchService = Mock()
         WatchServiceRegistrar registrar = new WatchServiceRegistrar(watchService, Mock(FileWatcherListener))
         def rootDirPath = Mock(Path)
-        def fileSystem = Mock(FileSystem)
-        def fileSystemProvider = Mock(FileSystemProvider)
-        rootDirPath.getFileSystem() >> fileSystem
-        fileSystem.provider() >> fileSystemProvider
-        fileSystemProvider.checkAccess(_, _) >> { throw new FileNotFoundException("File doesn't exist") }
+        def rootDirFile = Mock(File)
 
         when:
         registrar.watchDir(rootDirPath)
 
         then:
+        1 * rootDirPath.toFile() >> rootDirFile
+        1 * rootDirFile.exists() >> false
         1 * rootDirPath.register(_, _, _) >> {
             throw new AccessDeniedException("Access denied")
         }
@@ -92,6 +90,7 @@ class WatchServiceRegistrarTest extends Specification {
         WatchService watchService = Mock()
         WatchServiceRegistrar registrar = new WatchServiceRegistrar(watchService, Mock(FileWatcherListener))
         def rootDirPath = Mock(Path)
+        def rootDirFile = Mock(File)
         def fileSystem = Mock(FileSystem)
         def fileSystemProvider = Mock(FileSystemProvider)
         rootDirPath.getFileSystem() >> fileSystem
@@ -101,6 +100,8 @@ class WatchServiceRegistrarTest extends Specification {
         registrar.watchDir(rootDirPath)
 
         then:
+        1 * rootDirPath.toFile() >> rootDirFile
+        1 * rootDirFile.exists() >> true
         1 * rootDirPath.register(_, _, _) >> {
             throw new IOException("Cannot watch file")
         }

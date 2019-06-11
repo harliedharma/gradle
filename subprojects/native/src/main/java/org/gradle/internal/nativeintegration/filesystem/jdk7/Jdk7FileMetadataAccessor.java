@@ -49,7 +49,7 @@ public class Jdk7FileMetadataAccessor implements FileMetadataAccessor {
 
     @Override
     public FileMetadataSnapshot stat(Path path) throws IOException {
-        if (!Files.exists(path)) {
+        if (!path.toFile().exists()) {
             return DefaultFileMetadata.missing();
         }
         BasicFileAttributes bfa = Files.readAttributes(path, BasicFileAttributes.class);
