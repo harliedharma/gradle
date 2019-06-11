@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.state.Managed;
+import org.gradle.internal.state.ManagedFactory;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
@@ -83,8 +84,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
-    public Factory managedFactory() {
-        return new Factory() {
+    public ManagedFactory managedFactory() {
+        return new ManagedFactory() {
             @Nullable
             @Override
             public <T> T fromState(Class<T> type, Object state) {
