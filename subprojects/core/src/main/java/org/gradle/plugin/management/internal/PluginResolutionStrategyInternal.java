@@ -21,4 +21,6 @@ import org.gradle.plugin.management.PluginResolutionStrategy;
 public interface PluginResolutionStrategyInternal extends PluginResolutionStrategy {
 
     PluginRequestInternal applyTo(PluginRequestInternal pluginRequest);
+
+    void addPluginVersion(String id, String version);
 }

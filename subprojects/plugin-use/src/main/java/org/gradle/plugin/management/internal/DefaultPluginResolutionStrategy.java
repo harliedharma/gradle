@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.management.internal;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.InternalBuildAdapter;
@@ -23,9 +24,12 @@ import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.plugin.management.PluginResolveDetails;
 
+import java.util.Map;
+
 public class DefaultPluginResolutionStrategy implements PluginResolutionStrategyInternal {
 
     private final MutableActionSet<PluginResolveDetails> resolutionRules = new MutableActionSet<PluginResolveDetails>();
+    private final Map<String, String> pluginVersions = Maps.newHashMap();
     private boolean locked;
 
     public DefaultPluginResolutionStrategy(ListenerManager listenerManager) {
@@ -48,7 +52,18 @@ public class DefaultPluginResolutionStrategy implements PluginResolutionStrategy
     @Override
     public PluginRequestInternal applyTo(PluginRequestInternal pluginRequest) {
         DefaultPluginResolveDetails details = new DefaultPluginResolveDetails(pluginRequest);
+        if (details.getRequested().getVersion() == null) {
+            String version = pluginVersions.get(details.getRequested().getId().getId());
+            if (version != null) {
+                details.useVersion(version);
+            }
+        }
         resolutionRules.execute(details);
         return details.getTarget();
+    }
+
+    @Override
+    public void addPluginVersion(String id, String version) {
+        pluginVersions.put(id, version);
     }
 }

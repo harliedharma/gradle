@@ -19,6 +19,7 @@ package org.gradle.plugin.management;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.plugin.use.PluginDependenciesSpec;
 
 /**
  * Configures how plugins are resolved.
@@ -47,5 +48,7 @@ public interface PluginManagementSpec {
      * The plugin resolution strategy.
      */
     PluginResolutionStrategy getResolutionStrategy();
+
+    void plugins(Action<? super PluginDependenciesSpec> action);
 
 }
