@@ -23,11 +23,9 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.state.Managed;
-import org.gradle.internal.state.ManagedFactory;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -81,20 +79,6 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     @Override
     public Object unpackState() {
         return getFiles();
-    }
-
-    @Override
-    public ManagedFactory managedFactory() {
-        return new ManagedFactory() {
-            @Nullable
-            @Override
-            public <T> T fromState(Class<T> type, Object state) {
-                if (!type.isAssignableFrom(ConfigurableFileCollection.class)) {
-                    return null;
-                }
-                return type.cast(new DefaultConfigurableFileCollection(resolver, null, (Set<File>) state));
-            }
-        };
     }
 
     @Override
