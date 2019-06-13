@@ -181,4 +181,21 @@ public abstract class JavaPluginConvention {
      */
     @Incubating
     public abstract boolean getAutoTargetJvmDisabled();
+
+    /**
+     * Require project dependencies to package their classes directory for the compile classpath.
+     * Activate this if you experience performance issues with very large multi-projects on Windows.
+     *
+     * @since 5.6
+     */
+    @Incubating
+    public abstract void packageClassesFromProjectDependencies();
+
+    /**
+     * Returns true, if {@link #packageClassesFromProjectDependencies()} has been set.
+     *
+     * @since 5.6
+     */
+    @Incubating
+    public abstract boolean getPackageClassesFromProjectDependencies();
 }

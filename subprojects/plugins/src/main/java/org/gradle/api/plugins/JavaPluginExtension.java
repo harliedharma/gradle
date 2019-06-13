@@ -72,4 +72,13 @@ public interface JavaPluginExtension {
      */
     @Incubating
     void disableAutoTargetJvm();
+
+    /**
+     * Require project dependencies to package their classes directory for the compile classpath.
+     * Activate this if you experience performance issues with very large multi-projects on Windows.
+     *
+     * @since 5.6
+     */
+    @Incubating
+    void packageClassesFromProjectDependencies();
 }

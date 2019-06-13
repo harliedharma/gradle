@@ -23,18 +23,24 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.transform.TransformParameters;
+import org.gradle.api.artifacts.transform.TransformSpec;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.Bundling;
+import org.gradle.api.attributes.Format;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
+import org.gradle.api.internal.jvm.ClassesToJarTransform;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -89,10 +95,18 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     );
 
     private final ObjectFactory objectFactory;
+    private final Action<TransformSpec<TransformParameters.None>> classesToJarTransformSpec;
 
     @Inject
     public JavaBasePlugin(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;
+        this.classesToJarTransformSpec = new Action<TransformSpec<TransformParameters.None>>() {
+            @Override
+            public void execute(TransformSpec<TransformParameters.None> spec) {
+                spec.getFrom().attribute(Format.FORMAT_ATTRIBUTE, objectFactory.named(Format.class, Format.DIRECTORY));
+                spec.getTo().attribute(Format.FORMAT_ATTRIBUTE, objectFactory.named(Format.class, Format.JAR));
+            }
+        };
     }
 
     @Override
@@ -112,6 +126,9 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         configureSchema(project);
         bridgeToSoftwareModelIfNecessary(project);
         configureVariantDerivationStrategy(project);
+
+        // See: JavaPluginConvention.getPackageClassesFromProjectDependencies()
+        project.getDependencies().registerTransform(ClassesToJarTransform.class, classesToJarTransformSpec);
     }
 
     private void configureVariantDerivationStrategy(ProjectInternal project) {
@@ -157,7 +174,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 definePathsForSourceSet(sourceSet, outputConventionMapping, project);
 
                 createProcessResourcesTask(sourceSet, sourceSet.getResources(), project);
-                Provider<JavaCompile> compileTask = createCompileJavaTask(sourceSet, sourceSet.getJava(), project);
+                Provider<JavaCompile> compileTask = createCompileJavaTask(sourceSet, sourceSet.getJava(), project, pluginConvention);
                 createClassesTask(sourceSet, project);
 
                 SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, sourceSet.getJava(), project, compileTask, compileTask.map(new Transformer<CompileOptions, JavaCompile>() {
@@ -170,7 +187,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private Provider<JavaCompile> createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
+    private Provider<JavaCompile> createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, JavaPluginConvention pluginConvention) {
         return target.getTasks().register(sourceSet.getCompileJavaTaskName(), JavaCompile.class, new Action<JavaCompile>() {
             @Override
             public void execute(JavaCompile compileTask) {
@@ -180,7 +197,18 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 conventionMapping.map("classpath", new Callable<Object>() {
                     @Override
                     public Object call() {
-                        return sourceSet.getCompileClasspath();
+                        FileCollection compileClasspath = sourceSet.getCompileClasspath();
+                        if (pluginConvention.getPackageClassesFromProjectDependencies() && compileClasspath instanceof Configuration) {
+                            Configuration cp = (Configuration) compileClasspath;
+                            return cp.getIncoming().artifactView(new Action<ArtifactView.ViewConfiguration>() {
+                                @Override
+                                public void execute(ArtifactView.ViewConfiguration viewConfiguration) {
+                                    viewConfiguration.getAttributes().attribute(Format.FORMAT_ATTRIBUTE, objectFactory.named(Format.class, Format.JAR));
+                                }
+                            }).getFiles();
+                        } else {
+                            return compileClasspath;
+                        }
                     }
                 });
                 SourceSetUtil.configureAnnotationProcessorPath(sourceSet, sourceDirectorySet, compileTask.getOptions(), target);

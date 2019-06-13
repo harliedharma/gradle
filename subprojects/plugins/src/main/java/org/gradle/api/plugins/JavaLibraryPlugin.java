@@ -19,6 +19,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.attributes.Format;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
@@ -27,6 +28,7 @@ import org.gradle.api.tasks.compile.JavaCompile;
 
 import javax.inject.Inject;
 
+import static org.gradle.api.attributes.Format.FORMAT_ATTRIBUTE;
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_JAVA_TASK_NAME;
 import static org.gradle.api.plugins.internal.JavaPluginsHelper.registerClassesDirVariant;
 
@@ -64,6 +66,7 @@ public class JavaLibraryPlugin implements Plugin<Project> {
 
         Configuration apiElementsConfiguration = configurations.getByName(sourceSet.getApiElementsConfigurationName());
         apiElementsConfiguration.extendsFrom(apiConfiguration);
+        apiElementsConfiguration.getAttributes().attribute(FORMAT_ATTRIBUTE, objectFactory.named(Format.class, Format.DIRECTORY));
 
         final Provider<JavaCompile> javaCompile = project.getTasks().named(COMPILE_JAVA_TASK_NAME, JavaCompile.class);
         registerClassesDirVariant(javaCompile, objectFactory, apiElementsConfiguration);
