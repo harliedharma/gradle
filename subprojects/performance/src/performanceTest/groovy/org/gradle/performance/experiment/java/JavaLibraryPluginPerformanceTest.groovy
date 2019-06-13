@@ -39,7 +39,7 @@ class JavaLibraryPluginPerformanceTest extends AbstractCrossBuildPerformanceTest
             warmUpCount = warmUpRuns
             invocationCount = runs
             projectName(testProject.projectName).displayName(javaLibraryRuns).invocation {
-                tasksToRun("clean", "classes").args("-PcompileConfiguration").gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}")
+                tasksToRun("clean", "classes").args("-PcompileConfiguration", "-PpackageClasses").gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}")
             }
         }
         runner.baseline {

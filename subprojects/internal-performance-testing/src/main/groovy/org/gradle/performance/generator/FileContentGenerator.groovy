@@ -58,6 +58,9 @@ abstract class FileContentGenerator {
         repositories {
             ${config.repositories.join("\n            ")}
         }
+        if (hasProperty("packageClasses")) {
+            ${javaPluginConfiguration()}
+        }
         ${dependenciesBlock('api', 'implementation', 'testImplementation', subProjectNumber, dependencyTree)}             
 
         ${tasksConfiguration()}
@@ -441,6 +444,8 @@ abstract class FileContentGenerator {
     protected abstract String missingJavaLibrarySupportFlag()
 
     protected abstract String noJavaLibraryPluginFlag()
+
+    protected abstract String javaPluginConfiguration()
 
     protected abstract String tasksConfiguration()
 

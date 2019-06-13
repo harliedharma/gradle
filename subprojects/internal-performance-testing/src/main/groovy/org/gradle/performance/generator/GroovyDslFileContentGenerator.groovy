@@ -32,6 +32,11 @@ class GroovyDslFileContentGenerator extends FileContentGenerator {
     }
 
     @Override
+    protected String javaPluginConfiguration() {
+        "java { packageClassesFromProjectDependencies() }"
+    }
+
+    @Override
     protected String tasksConfiguration() {
         """
         String compilerMemory = getProperty('compilerMemory')

@@ -32,6 +32,11 @@ class KotlinDslFileContentGenerator extends FileContentGenerator {
     }
 
     @Override
+    protected String javaPluginConfiguration() {
+        "extensions.getByType<JavaPluginExtension>().apply { packageClassesFromProjectDependencies() }"
+    }
+
+    @Override
     protected String tasksConfiguration() {
         """
         val compilerMemory: String by project
