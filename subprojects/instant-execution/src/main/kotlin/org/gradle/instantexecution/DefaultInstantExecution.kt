@@ -17,15 +17,24 @@
 package org.gradle.instantexecution
 
 import org.gradle.api.Task
+import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.InstantExecution
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
+import org.gradle.instantexecution.serialization.IsolateContext
+import org.gradle.instantexecution.serialization.IsolateOwner
+import org.gradle.instantexecution.serialization.MutableIsolateContext
+import org.gradle.instantexecution.serialization.PropertyTrace
+import org.gradle.instantexecution.serialization.ReadContext
+import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.codecs.Codecs
 import org.gradle.instantexecution.serialization.codecs.TaskGraphCodec
 import org.gradle.instantexecution.serialization.readClassPath
 import org.gradle.instantexecution.serialization.readCollection
+import org.gradle.instantexecution.serialization.withIsolate
+import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.instantexecution.serialization.writeClassPath
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.internal.classloader.ClasspathUtil
@@ -101,6 +110,9 @@ class DefaultInstantExecution(
 
                     val build = host.currentBuild
                     writeString(build.rootProject.name)
+
+                    writeGradleState(build.rootProject.gradle)
+
                     val scheduledTasks = build.scheduledTasks
                     writeRelevantProjectsFor(scheduledTasks)
 
@@ -125,6 +137,9 @@ class DefaultInstantExecution(
 
                     val rootProjectName = readString()
                     val build = host.createBuild(rootProjectName)
+
+                    readGradleState(build.gradle)
+
                     readRelevantProjects(build)
 
                     build.autoApplyPlugins()
@@ -166,6 +181,20 @@ class DefaultInstantExecution(
         instantiator = service(),
         listenerManager = service()
     )
+
+    private
+    fun DefaultWriteContext.writeGradleState(gradle: Gradle) {
+        withGradle(gradle) {
+            // TODO
+        }
+    }
+
+    private
+    fun DefaultReadContext.readGradleState(gradle: Gradle) {
+        withGradle(gradle) {
+            // TODO
+        }
+    }
 
     private
     fun Encoder.writeRelevantProjectsFor(tasks: List<Task>) {
@@ -269,3 +298,16 @@ fun fillTheGapsOf(paths: SortedSet<Path>): List<Path> {
 
 private
 val logger = Logging.getLogger(DefaultInstantExecution::class.java)
+
+
+private
+inline fun <T> T.withGradle(
+    gradle: Gradle,
+    action: () -> Unit
+) where T : IsolateContext, T : MutableIsolateContext {
+    withIsolate(IsolateOwner.OwnerGradle(gradle)) {
+        withPropertyTrace(PropertyTrace.Gradle) {
+            action()
+        }
+    }
+}
