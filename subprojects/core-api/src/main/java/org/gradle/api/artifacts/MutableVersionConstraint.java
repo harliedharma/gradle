@@ -74,6 +74,15 @@ public interface MutableVersionConstraint extends VersionConstraint {
     void prefer(String version);
 
     /**
+     * Sets the preferred version of this module for its whole graph of dependencies.
+     * It effectively disables all rejects that collide with the version and will be selected
+     * with the strongest weight (i.e. it can downgrade higher prefers)
+     *
+     * @param version the preferred version of this module and all its dependencies
+     */
+    void requireTransitive(String version);
+
+    /**
      * Sets the version as strict.
      * <p>
      * Any version not matched by this version notation will be excluded. This is the strongest version declaration.

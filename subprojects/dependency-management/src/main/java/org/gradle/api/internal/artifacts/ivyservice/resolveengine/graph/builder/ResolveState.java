@@ -151,9 +151,24 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         return nodes.size();
     }
 
-    public NodeState getNode(ComponentState module, ConfigurationMetadata configurationMetadata) {
+    public NodeState getNode(ComponentState module, ConfigurationMetadata configurationMetadata, SelectorOverrides selectorOverrides) {
         ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(module.getId(), configurationMetadata.getName());
-        return nodes.computeIfAbsent(id, rci -> new NodeState(idGenerator.generateId(), id, module, this, configurationMetadata));
+        // TODO different 'overridingSelectors' may come in here from different sides. We take the first one (which kind of works in most cases I guess).
+        return nodes.computeIfAbsent(id, rci -> new NodeState(idGenerator.generateId(), id, module, this, configurationMetadata, selectorOverrides));
+        /*
+        if (nodes.containsKey(id)) {
+            NodeState nodeState = nodes.get(id);
+            SelectorOverrides otherOverrides = nodeState.selectorOverrides;
+            if (selectorOverrides.isParent(otherOverrides)) {
+                nodeState.selectorOverrides = selectorOverrides;
+            } else if (otherOverrides == null || !otherOverrides.isParent(selectorOverrides)) {
+                throw new RuntimeException("Conflict !!!");
+            }
+            return nodeState;
+        } else {
+            return nodes.computeIfAbsent(id, rci -> new NodeState(idGenerator.generateId(), id, module, this, configurationMetadata, selectorOverrides));
+        }
+        */
     }
 
     public Collection<SelectorState> getSelectors() {

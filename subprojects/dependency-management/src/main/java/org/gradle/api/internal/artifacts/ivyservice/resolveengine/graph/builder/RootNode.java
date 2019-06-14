@@ -26,7 +26,7 @@ import java.util.Set;
 
 class RootNode extends NodeState implements RootGraphNode {
     RootNode(Long resultId, ComponentState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState, ConfigurationMetadata configuration) {
-        super(resultId, id, moduleRevision, resolveState, configuration);
+        super(resultId, id, moduleRevision, resolveState, configuration, null);
         moduleRevision.setRoot();
     }
 

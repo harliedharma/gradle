@@ -25,6 +25,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.Capability;
@@ -51,6 +52,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -72,6 +74,7 @@ public class NodeState implements DependencyGraphNode {
     private final boolean isTransitive;
     private final boolean selectedByVariantAwareResolution;
     private final boolean dependenciesMayChange;
+    SelectorOverrides selectorOverrides;
 
     ExcludeSpec previousTraversalExclusions;
 
@@ -103,7 +106,7 @@ public class NodeState implements DependencyGraphNode {
     private ExcludeSpec cachedModuleResolutionFilter;
 
 
-    public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
+    public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md, SelectorOverrides parentOverrides) {
         this.resultId = resultId;
         this.id = id;
         this.component = component;
@@ -113,6 +116,7 @@ public class NodeState implements DependencyGraphNode {
         this.selectedByVariantAwareResolution = md instanceof SelectedByVariantMatchingConfigurationMetadata;
         this.moduleExclusions = resolveState == null ? null : resolveState.getModuleExclusions(); // can be null in tests, ResolveState cannot be mocked
         this.dependenciesMayChange = component.getModule() != null && component.getModule().isVirtualPlatform(); // can be null in tests, ComponentState cannot be mocked
+        this.selectorOverrides = parentOverrides;
         component.addConfiguration(this);
     }
 
@@ -330,14 +334,30 @@ public class NodeState implements DependencyGraphNode {
     private void visitDependencies(ExcludeSpec resolutionFilter, Collection<EdgeState> discoveredEdges) {
         PendingDependenciesVisitor pendingDepsVisitor = resolveState.newPendingDependenciesVisitor();
         try {
-            for (DependencyState dependencyState : dependencies(resolutionFilter)) {
+            List<DependencyState> dependencies = dependencies(resolutionFilter);
+            Map<ModuleIdentifier, DependencyState> overridingSelectors = null;
+            for (DependencyState dependencyState : dependencies) {
+                ComponentSelector selector = dependencyState.getDependency().getSelector();
+                if (selector instanceof ModuleComponentSelector) {
+                    if (((ModuleComponentSelector) selector).getVersionConstraint().appliesTransitively()) {
+                        if (overridingSelectors == null) {
+                            overridingSelectors = new LinkedHashMap<ModuleIdentifier, DependencyState>();
+                        }
+                        overridingSelectors.put(dependencyState.getModuleIdentifier(), dependencyState);
+                    }
+                }
+            }
+            if (overridingSelectors != null) {
+                selectorOverrides = new SelectorOverrides(overridingSelectors, selectorOverrides);
+            }
+            for (DependencyState dependencyState : dependencies) {
                 dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
                 PendingDependenciesVisitor.PendingState pendingState = pendingDepsVisitor.maybeAddAsPendingDependency(this, dependencyState);
                 if (dependencyState.getDependency().isConstraint()) {
                     registerActivatingConstraint(dependencyState);
                 }
                 if (!pendingState.isPending()) {
-                    createAndLinkEdgeState(dependencyState, discoveredEdges, resolutionFilter, pendingState == PendingDependenciesVisitor.PendingState.NOT_PENDING_ACTIVATING);
+                    createAndLinkEdgeState(dependencyState, discoveredEdges, resolutionFilter, pendingState == PendingDependenciesVisitor.PendingState.NOT_PENDING_ACTIVATING, selectorOverrides);
                 }
             }
             previousTraversalExclusions = resolutionFilter;
@@ -397,8 +417,8 @@ public class NodeState implements DependencyGraphNode {
         return dependencyStateCache.computeIfAbsent(md, this::createDependencyState);
     }
 
-    private void createAndLinkEdgeState(DependencyState dependencyState, Collection<EdgeState> discoveredEdges, ExcludeSpec resolutionFilter, boolean deferSelection) {
-        EdgeState dependencyEdge = edgesCache.computeIfAbsent(dependencyState, ds -> new EdgeState(this, ds, resolutionFilter, resolveState));
+    private void createAndLinkEdgeState(DependencyState dependencyState, Collection<EdgeState> discoveredEdges, ExcludeSpec resolutionFilter, boolean deferSelection, SelectorOverrides selectorOverrides) {
+        EdgeState dependencyEdge = edgesCache.computeIfAbsent(dependencyState, ds -> new EdgeState(this, ds, resolutionFilter, resolveState, selectorOverrides));
         dependencyEdge.getSelector().update(dependencyState);
         outgoingEdges.add(dependencyEdge);
         discoveredEdges.add(dependencyEdge);
@@ -418,7 +438,7 @@ public class NodeState implements DependencyGraphNode {
             if (!dependencyStates.isEmpty()) {
                 for (DependencyState dependencyState : dependencyStates) {
                     dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
-                    createAndLinkEdgeState(dependencyState, discoveredEdges, previousTraversalExclusions, false);
+                    createAndLinkEdgeState(dependencyState, discoveredEdges, previousTraversalExclusions, false, selectorOverrides);
                 }
             }
         }

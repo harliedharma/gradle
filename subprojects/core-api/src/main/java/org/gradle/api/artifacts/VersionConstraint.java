@@ -135,4 +135,11 @@ public interface VersionConstraint extends Describable {
      * @return the list of rejected versions
      */
     List<String> getRejectedVersions();
+
+    /**
+     * Apply the version constraint to all dependencies on the corresponding module in the whole graph of dependencies.
+     *
+     * @since 5.6
+     */
+    boolean appliesTransitively();
 }

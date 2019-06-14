@@ -420,8 +420,8 @@ public class GradleModuleMetadataParser {
             }
         }
         reader.endObject();
-
-        return DefaultImmutableVersionConstraint.of(preferredVersion, requiredVersion, strictVersion, rejects);
+        boolean appliesTransitively = false; //TODO
+        return DefaultImmutableVersionConstraint.of(preferredVersion, requiredVersion, strictVersion, rejects, appliesTransitively);
     }
 
     private ImmutableList<ExcludeMetadata> consumeExcludes(JsonReader reader) throws IOException {
