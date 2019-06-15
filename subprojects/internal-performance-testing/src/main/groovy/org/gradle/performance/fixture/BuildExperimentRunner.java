@@ -25,6 +25,7 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BuildExperimentRunner {
@@ -99,6 +100,8 @@ public class BuildExperimentRunner {
             BuildExperimentInvocationInfo info = new DefaultBuildExperimentInvocationInfo(experiment, projectDir, Phase.MEASUREMENT, i + 1, invocationCount);
             runOnce(session, results, info);
         }
+        System.out.println();
+        System.out.println();
     }
 
     @SuppressWarnings("unchecked")
@@ -128,6 +131,18 @@ public class BuildExperimentRunner {
             BuildExperimentInvocationInfo info = new DefaultBuildExperimentInvocationInfo(experiment, projectDir, Phase.WARMUP, i + 1, warmUpCount);
             runOnce(session, new MeasuredOperationList(), info);
         }
+        int cooldown = 30;
+        System.out.println();
+        System.out.println();
+        System.out.println("Cool down " + experiment.getDisplayName() + " for " + cooldown + " seconds");
+        try {
+            Thread.sleep(TimeUnit.SECONDS.toMillis(cooldown));
+        } catch (InterruptedException e) {
+            // ignore
+        }
+        System.out.println("Cool down " + experiment.getDisplayName() + " done");
+        System.out.println();
+        System.out.println();
     }
 
     private static String getExperimentOverride(String key) {
