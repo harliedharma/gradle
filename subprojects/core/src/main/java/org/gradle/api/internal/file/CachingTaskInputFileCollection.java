@@ -46,7 +46,7 @@ public class CachingTaskInputFileCollection extends DefaultConfigurableFileColle
     public void visitContents(FileCollectionResolveContext context) {
         if (canCache) {
             if (cachedValue == null) {
-                DefaultFileCollectionResolveContext nested = new DefaultFileCollectionResolveContext(fileResolver);
+                DefaultFileCollectionResolveContext nested = new DefaultFileCollectionResolveContext(fileResolver.getPatternSetFactory());
                 super.visitContents(nested);
                 ImmutableSet.Builder<File> files = ImmutableSet.builder();
                 for (FileCollectionInternal fileCollection : nested.resolveAsFileCollections()) {
