@@ -29,7 +29,10 @@ import java.util.concurrent.atomic.AtomicInteger
 class DirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectoryWalker> {
     @Override
     protected List<DirectoryWalker> getWalkers() {
-        return [new DefaultDirectoryWalker(), new ReproducibleDirectoryWalker()]
+        return [
+            new DefaultDirectoryWalker(TestFiles.fileSystem()),
+            new ReproducibleDirectoryWalker(TestFiles.fileSystem())
+        ]
     }
 
     private static generateFilesAndSubDirectories(TestFile parentDir, int fileCount, int dirCount, int maxDepth, int currentDepth, AtomicInteger fileIdGenerator) {
@@ -54,7 +57,7 @@ class DirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectoryWalker> {
         file2 << '12345'
         def file3 = rootDir.createFile("a/b/3.txt")
         file3 << '12345'
-        def walkerInstance = new DefaultDirectoryWalker()
+        def walkerInstance = new DefaultDirectoryWalker(TestFiles.fileSystem())
         def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory, TestFiles.fileSystem(), false)
         def visitedFiles = []
         def visitedDirectories = []
