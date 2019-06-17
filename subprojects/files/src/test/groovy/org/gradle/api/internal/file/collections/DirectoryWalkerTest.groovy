@@ -18,7 +18,6 @@ package org.gradle.api.internal.file.collections
 
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.jdk7.Jdk7DirectoryWalker
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
 import org.gradle.test.fixtures.file.TestFile
@@ -30,7 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class DirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectoryWalker> {
     @Override
     protected List<DirectoryWalker> getWalkers() {
-        return [new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker()]
+        return [new DefaultDirectoryWalker(), new ReproducibleDirectoryWalker()]
     }
 
     private static generateFilesAndSubDirectories(TestFile parentDir, int fileCount, int dirCount, int maxDepth, int currentDepth, AtomicInteger fileIdGenerator) {
@@ -55,7 +54,7 @@ class DirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectoryWalker> {
         file2 << '12345'
         def file3 = rootDir.createFile("a/b/3.txt")
         file3 << '12345'
-        def walkerInstance = new Jdk7DirectoryWalker()
+        def walkerInstance = new DefaultDirectoryWalker()
         def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory, TestFiles.fileSystem(), false)
         def visitedFiles = []
         def visitedDirectories = []
