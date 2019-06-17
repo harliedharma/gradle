@@ -69,7 +69,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         state.length == 1
         state[0] == null
 
-        def copy = managedFactoryRegistry.lookup(BeanWithAbstractProperty).fromState(BeanWithAbstractProperty, state)
+        def copy = managedFactoryRegistry.lookup(bean.getFactoryId()).fromState(BeanWithAbstractProperty, state)
         !copy.is(bean)
         copy.name == null
 
@@ -80,7 +80,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         state2.length == 1
         state2[0] == "name"
 
-        def copy2 = managedFactoryRegistry.lookup(BeanWithAbstractProperty).fromState(BeanWithAbstractProperty, state2)
+        def copy2 = managedFactoryRegistry.lookup(bean.getFactoryId()).fromState(BeanWithAbstractProperty, state2)
         !copy2.is(bean)
         copy2.name == "name"
     }
@@ -110,7 +110,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         state[0] == null
         state[1] == null
 
-        def copy = managedFactoryRegistry.lookup(InterfaceBean).fromState(InterfaceBean, state)
+        def copy = managedFactoryRegistry.lookup(bean.getFactoryId()).fromState(InterfaceBean, state)
         !copy.is(bean)
         copy.name == null
         copy.numbers == null
@@ -125,7 +125,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         state2[0] == "name"
         state2[1] == [12] as Set
 
-        def copy2 = managedFactoryRegistry.lookup(InterfaceBean).fromState(InterfaceBean, state2)
+        def copy2 = managedFactoryRegistry.lookup(bean.getFactoryId()).fromState(InterfaceBean, state2)
         !copy2.is(bean)
         copy2.name == "name"
         copy2.numbers == [12] as Set
@@ -199,7 +199,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         state.length == 1
         state[0].is(bean.prop)
 
-        def copy = managedFactoryRegistry.lookup(type).fromState(type, state)
+        def copy = managedFactoryRegistry.lookup(bean.getFactoryId()).fromState(type, state)
         copy.prop.is(bean.prop)
 
         where:
@@ -230,7 +230,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         def state = bean.unpackState()
         state.length == 0
 
-        def copy = managedFactoryRegistry.lookup(InterfaceWithDefaultMethods).fromState(InterfaceWithDefaultMethods, state)
+        def copy = managedFactoryRegistry.lookup(bean.getFactoryId()).fromState(InterfaceWithDefaultMethods, state)
         !copy.is(bean)
         copy.name == "name"
     }
