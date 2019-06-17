@@ -16,6 +16,8 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.util.TextUtil
+
 
 class InstantExecutionClassloadingIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
@@ -37,7 +39,7 @@ class InstantExecutionClassloadingIntegrationTest extends AbstractInstantExecuti
 
             initscript {
                 dependencies {
-                    classpath(files("$jar.absolutePath"))
+                    classpath(files("${TextUtil.normaliseFileSeparators(jar.absolutePath)}"))
                 }
             }
             
