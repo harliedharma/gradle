@@ -90,6 +90,7 @@ class Codecs(
         bind(linkedHashSetCodec)
         bind(hashSetCodec)
         bind(treeSetCodec)
+        bind(enumSetCodec)
 
         // Only serialize certain Map implementations for now, as some custom types extend Map (eg DefaultManifest)
         bind(linkedHashMapCodec)

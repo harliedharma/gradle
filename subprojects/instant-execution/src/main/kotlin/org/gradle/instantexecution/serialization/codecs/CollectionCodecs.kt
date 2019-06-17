@@ -26,6 +26,7 @@ import org.gradle.instantexecution.serialization.writeClass
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeMap
 import java.util.EnumMap
+import java.util.EnumSet
 import java.util.TreeMap
 import java.util.TreeSet
 
@@ -55,6 +56,25 @@ val treeSetCodec: Codec<TreeSet<Any?>> = codec(
         val comparator = read() as Comparator<Any?>?
         readCollectionInto { TreeSet(comparator) }
     })
+
+
+internal
+val enumSetCodec: Codec<EnumSet<*>> = codec(
+    {
+        val nonEmptyEnumSet = it.takeIf { it.isNotEmpty() }
+            ?: EnumSet::class.java.getDeclaredMethod("complementOf", EnumSet::class.java).invoke(null, it) as EnumSet<*>
+        val enumType = nonEmptyEnumSet.iterator().next().javaClass
+        writeClass(enumType)
+        writeCollection(it)
+    },
+    {
+        val enumType = readClass()
+        val set = EnumSet::class.java.getDeclaredMethod("noneOf", Class::class.java).invoke(null, enumType) as EnumSet<*>
+        val add = Collection::class.java.getDeclaredMethod("add", Object::class.java)
+        readCollectionInto { ArrayList<Any?>(it) }.forEach { add.invoke(set, it) }
+        set
+    }
+)
 
 
 internal
