@@ -25,6 +25,7 @@ import org.gradle.instantexecution.serialization.readMapInto
 import org.gradle.instantexecution.serialization.writeClass
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeMap
+import java.util.EnumMap
 import java.util.TreeMap
 import java.util.TreeSet
 
@@ -73,6 +74,18 @@ val linkedHashMapCodec: Codec<LinkedHashMap<Any?, Any?>> = mapCodec { LinkedHash
 
 internal
 val treeMapCodec: Codec<TreeMap<Any?, Any?>> = mapCodec { TreeMap<Any?, Any?>() }
+
+
+internal
+val enumMapCodec: Codec<EnumMap<*, Any?>> = codec(
+    { writeMap(it) },
+    {
+        EnumMap::class.java
+            .getDeclaredConstructor(java.util.Map::class.java)
+            .newInstance(readMapInto { LinkedHashMap<Any?, Any?>(it) })
+            as EnumMap<*, Any?>?
+    }
+)
 
 
 internal
