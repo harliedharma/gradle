@@ -7,15 +7,6 @@ We would like to thank the following community contributors to this release of G
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 -->
-[Andrew K.](https://github.com/miokowpak),
-[Semyon Levin](https://github.com/remal),
-[wreulicke](https://github.com/wreulicke),
-[John Rodriguez](https://github.com/jrodbx),
-[mig4](https://github.com/mig4),
-[Evgeny Mandrikov](https://github.com/Godin),
-[Simon Legner](https://github.com/simon04),
-[Sebastian Schuberth](https://github.com/sschuberth),
-and [Ivo Anjo](https://github.com/ivoanjo).
 
 <!-- 
 ## 1
@@ -29,13 +20,6 @@ details of 2
 ## n
 -->
 
-## Substitute closed Eclipse projects in Buildship
-
-Closed gradle projects in an eclipse workspace can now be substituted for their respective jar files. In addition to this 
-those jars can now be built during Buildship eclipse model synchronization.
-
-The upcoming version of Buildship is required to take advantage of this behavior.
-
 ## Upgrade Instructions
 
 Switch your build to use Gradle @version@ by updating your wrapper:
@@ -46,50 +30,15 @@ See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@b
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
-## Improvements for plugin authors
-
-### Task dependencies are honored for `@Input` properties of type `Property`
-
-TBD - honors dependencies on `@Input` properties.
-
-### Property methods
-
-TBD - added `getLocationOnly()`. 
-
-## Building native software with Gradle
-
-All new C++ documentations including new user manual chapters for [building](userguide/building_cpp_projects.html) and [testing](userguide/cpp_testing.html) C++ projects, [DSL reference for C++ components](dsl/index.html#N10808), [C++ plugins reference chapters](userguide/plugin_reference.html#native_languages) and [Visual Studio and Xcode IDE plugins reference chapters](userguide/plugin_reference.html#ide_integration).
-The [C++ guides](https://gradle.org/guides/?q=Native) were also improved to reflect all the new features available to C++ developers.
-See more information about the [Gradle native project](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-55).
-
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
 
-## Improved handling of ZIP archives on classpaths
-
-Compile classpath and runtime classpath analysis will now detect the most common zip extension instead of only supporting `.jar`.
-It will inspect nested zip archives as well instead of treating them as blobs. This improves the likelihood of cache hits for tasks
-that take such nested zips as an input, e.g. when testing applications packaged as a fat jar.
-
-The ZIP analysis now also avoids unpacking entries that are irrelevant, e.g. resource files on a compile classpath. 
-This improves performance for projects with a large amount of resource files.
-
-## File case changes when copying files on case-insensitive file systems are now handled correctly
-
-On case-insensitive file systems (e.g. NTFS and APFS), a file/folder rename where only the case is changed is now handled properly by Gradle's file copying operations. For example, renaming an input of a `Copy` task called `file.txt` to `FILE.txt` will now cause `FILE.txt` being created in the destination directory. The `Sync` task and `Project.copy()` and `sync()` operations now also handle case-renames as expected.
-
 <!--
 ### Example promoted
 -->
-
-## Incubating support for Groovy compilation avoidance
-
-Gradle now supports experimental compilation avoidance for Groovy. 
-This accelerates Groovy compilation by avoiding re-compiling dependent projects if only non-ABI changes are detected.
-See [Groovy compilation avoidance](userguide/groovy_plugin.html#sec:groovy_compilation_avoidance) for more details.
 
 ## Fixed issues
 
