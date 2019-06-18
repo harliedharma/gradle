@@ -109,13 +109,9 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
                 continue;
             }
             String fullName = parentName.isEmpty() ? zipEntry.getName() : parentName + "/" + zipEntry.getName();
-            if (isZipFile(zipEntry.getName())) {
-                fingerprintZipEntries(fullName, fingerprints, new StreamZipInput(zipEntry.getInputStream()));
-            } else {
-                HashCode hash = resourceHasher.hash(zipEntry);
-                if (hash != null) {
-                    fingerprints.add(new DefaultFileSystemLocationFingerprint(fullName, FileType.RegularFile, hash));
-                }
+            HashCode hash = resourceHasher.hash(zipEntry);
+            if (hash != null) {
+                fingerprints.add(new DefaultFileSystemLocationFingerprint(fullName, FileType.RegularFile, hash));
             }
         }
     }
