@@ -22,30 +22,44 @@ plugins {
 }
 
 dependencies {
-    api(project(":baseServices"))
-    api(project(":baseServicesGroovy"))
-    api(project(":coreApi"))
-    api(project(":modelCore"))
-    api(library("guava"))
     api(library("jsr305"))
-    api(library("inject"))
 
+    implementation(project(":baseServices"))
+    implementation(project(":baseServicesGroovy"))
+    implementation(project(":coreApi"))
+    implementation(project(":modelCore"))
     implementation(project(":logging"))
     implementation(project(":native"))
+
+    implementation(library("slf4j_api"))
+    implementation(library("groovy"))
+    implementation(library("guava"))
     implementation(library("commons_io"))
     implementation(library("commons_lang"))
+    implementation(library("inject"))
 
-    testImplementation(project(":internalTesting"))
+    testImplementation(project(":processServices"))
+    testImplementation(project(":resources"))
+    testImplementation(project(":snapshots"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":coreApi")))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    testRuntimeOnly(project(":workers"))
+    testRuntimeOnly(project(":dependencyManagement"))
+
+    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":coreApi"))
+    testFixturesImplementation(project(":native"))
+
     testFixturesImplementation(project(":internalTesting"))
+
+    testFixturesImplementation(library("guava"))
 }
 
 java {
     gradlebuildJava {
-        moduleType = ModuleType.ENTRY_POINT
+        moduleType = ModuleType.CORE
     }
 }
 
-testFixtures {
-    from(":core")
-    from(":coreApi")
-}

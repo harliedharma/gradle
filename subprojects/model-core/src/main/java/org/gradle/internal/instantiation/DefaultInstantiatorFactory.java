@@ -43,21 +43,21 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
         DefaultServiceRegistry services = new DefaultServiceRegistry();
         services.add(InstantiatorFactory.class, this);
         this.defaultServices = services;
-        ClassGenerator injectOnly = AsmBackedClassGenerator.injectOnly(annotationHandlers, ImmutableSet.of());
-        ClassGenerator decorated = AsmBackedClassGenerator.decorateAndInject(annotationHandlers, ImmutableSet.of());
+        ClassGenerator injectOnly = AsmBackedClassGenerator.injectOnly(annotationHandlers, ImmutableSet.of(), cacheFactory);
+        ClassGenerator decorated = AsmBackedClassGenerator.decorateAndInject(annotationHandlers, ImmutableSet.of(), cacheFactory);
         ConstructorSelector injectOnlyJsr330Selector = new Jsr330ConstructorSelector(injectOnly, cacheFactory.newClassCache());
         ConstructorSelector decoratedJsr330Selector = new Jsr330ConstructorSelector(decorated, cacheFactory.newClassCache());
         ConstructorSelector injectOnlyLenientSelector = new ParamsMatchingConstructorSelector(injectOnly, cacheFactory.newClassCache());
         ConstructorSelector decoratedLenientSelector = new ParamsMatchingConstructorSelector(decorated, cacheFactory.newClassCache());
-        injectOnlyScheme = new DefaultInstantiationScheme(injectOnlyJsr330Selector, defaultServices, ImmutableSet.of(Inject.class));
-        injectOnlyLenientScheme = new DefaultInstantiationScheme(injectOnlyLenientSelector, defaultServices, ImmutableSet.of(Inject.class));
-        decoratingScheme = new DefaultInstantiationScheme(decoratedJsr330Selector, defaultServices, ImmutableSet.of(Inject.class));
-        decoratingLenientScheme = new DefaultInstantiationScheme(decoratedLenientSelector, defaultServices, ImmutableSet.of(Inject.class));
+        injectOnlyScheme = new DefaultInstantiationScheme(injectOnlyJsr330Selector, defaultServices, ImmutableSet.of(Inject.class), cacheFactory);
+        injectOnlyLenientScheme = new DefaultInstantiationScheme(injectOnlyLenientSelector, defaultServices, ImmutableSet.of(Inject.class), cacheFactory);
+        decoratingScheme = new DefaultInstantiationScheme(decoratedJsr330Selector, defaultServices, ImmutableSet.of(Inject.class), cacheFactory);
+        decoratingLenientScheme = new DefaultInstantiationScheme(decoratedLenientSelector, defaultServices, ImmutableSet.of(Inject.class), cacheFactory);
     }
 
     @Override
     public Instantiator inject(ServiceLookup services) {
-        return injectOnlyScheme.withServices(services);
+        return injectOnlyScheme.withServices(services).instantiator();
     }
 
     @Override
@@ -79,12 +79,12 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
         for (Class<? extends Annotation> annotation : injectAnnotations) {
             assertKnownAnnotation(annotation);
         }
-        ClassGenerator classGenerator = AsmBackedClassGenerator.injectOnly(annotationHandlers, ImmutableSet.copyOf(injectAnnotations));
+        ClassGenerator classGenerator = AsmBackedClassGenerator.injectOnly(annotationHandlers, ImmutableSet.copyOf(injectAnnotations), cacheFactory);
         Jsr330ConstructorSelector constructorSelector = new Jsr330ConstructorSelector(classGenerator, cacheFactory.newClassCache());
         ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builderWithExpectedSize(injectAnnotations.size() + 1);
         builder.addAll(injectAnnotations);
         builder.add(Inject.class);
-        return new DefaultInstantiationScheme(constructorSelector, defaultServices, builder.build());
+        return new DefaultInstantiationScheme(constructorSelector, defaultServices, builder.build(), cacheFactory);
     }
 
     @Override
@@ -94,7 +94,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
 
     @Override
     public Instantiator injectLenient(ServiceLookup services) {
-        return injectOnlyLenientScheme.withServices(services);
+        return injectOnlyLenientScheme.withServices(services).instantiator();
     }
 
     @Override
@@ -104,7 +104,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
 
     @Override
     public Instantiator injectAndDecorateLenient(ServiceLookup services) {
-        return decoratingLenientScheme.withServices(services);
+        return decoratingLenientScheme.withServices(services).instantiator();
     }
 
     @Override
@@ -114,7 +114,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
 
     @Override
     public Instantiator injectAndDecorate(ServiceLookup services) {
-        return decoratingScheme.withServices(services);
+        return decoratingScheme.withServices(services).instantiator();
     }
 
     private void assertKnownAnnotation(Class<? extends Annotation> annotation) {

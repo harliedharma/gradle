@@ -6,11 +6,31 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":baseServices"))
+    implementation(project(":messaging"))
+    implementation(project(":logging"))
+    implementation(project(":coreApi"))
     implementation(project(":core"))
     implementation(project(":modelCore"))
     implementation(project(":files"))
 
-    compile(futureKotlin("stdlib-jdk8"))
+    implementation(library("groovy"))
+    implementation(library("slf4j_api"))
+    implementation(futureKotlin("stdlib-jdk8"))
+
+    testImplementation(testFixtures(project(":core")))
+
+    integTestImplementation(project(":toolingApi"))
+
+    integTestImplementation(library("guava"))
+    integTestImplementation(library("ant"))
+    integTestImplementation(library("inject"))
+
+    integTestRuntimeOnly(project(":toolingApiBuilders"))
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
+
+    testRuntimeOnly(kotlin("reflect"))
 }
 
 gradlebuildJava {

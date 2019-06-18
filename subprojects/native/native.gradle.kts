@@ -9,22 +9,20 @@ plugins {
 }
 
 dependencies {
-    api(project(":baseServices"))
-    api(library("nativePlatform"))
+    implementation(project(":baseServices"))
 
-    implementation(library("commons_io"))
+    implementation(library("nativePlatform"))
     implementation(library("slf4j_api"))
-    implementation(library("jansi"))
     implementation(library("guava"))
+    implementation(library("commons_io"))
+    implementation(library("jansi"))
+
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":logging")))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
-}
-
-testFixtures {
-    from(":core")
-    from(":logging")
+    moduleType = ModuleType.WORKER
 }
 
 jmh {

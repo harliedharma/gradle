@@ -18,6 +18,8 @@ package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.jvm.Jvm
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.workers.IsolationMode
 import spock.lang.Unroll
 
@@ -137,7 +139,39 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         assertRunnableExecuted("runAgainInWorker")
 
         where:
-        isolationMode << ISOLATION_MODES
+        isolationMode << (ISOLATION_MODES - "IsolationMode.NONE")
+    }
+
+    def "produces a sensible error when a parameter can't be serialized to the worker in IsolationMode.NONE"() {
+        fixture.withRunnableClassInBuildSrc()
+        withParameterMemberThatFailsSerialization()
+
+        buildFile << """
+            ${fixture.alternateRunnable}
+
+            task runAgainInWorker(type: WorkerTask) {
+                isolationMode = IsolationMode.NONE
+                runnableClass = AlternateRunnable.class
+            }
+            
+            task runInWorker(type: WorkerTask) {
+                isolationMode = IsolationMode.NONE
+                foo = new FooWithUnserializableBar()
+                finalizedBy runAgainInWorker
+            }
+        """.stripIndent()
+
+        when:
+        fails("runInWorker")
+
+        then:
+        failureHasCause("A failure occurred while executing org.gradle.test.TestRunnable")
+        failureHasCause("Could not isolate value")
+        failureHasCause("Could not serialize value of type 'org.gradle.other.FooWithUnserializableBar'")
+
+        and:
+        executedAndNotSkipped(":runAgainInWorker")
+        assertRunnableExecuted("runAgainInWorker")
     }
 
     @Unroll
@@ -287,6 +321,29 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
         where:
         isolationMode << [IsolationMode.CLASSLOADER, IsolationMode.NONE]
+    }
+
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "produces a sensible error when worker fails before logging is initialized"() {
+        fixture.withRunnableClassInBuildScript()
+
+        buildFile << """
+            $runnableWithDifferentConstructor
+
+            task runInWorker(type: WorkerTask) {
+                isolationMode = IsolationMode.PROCESS
+                additionalForkOptions = {
+                    it.systemProperty("org.gradle.native.dir", "/dev/null")
+                }
+            }
+        """.stripIndent()
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        fails("runInWorker")
+
+        then:
+        result.assertHasErrorOutput("net.rubygrapefruit.platform.NativeException: Failed to load native library")
     }
 
     String getUnrecognizedOptionError() {

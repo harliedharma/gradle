@@ -182,6 +182,7 @@ class EdgeState implements DependencyGraphEdge {
         }
     }
 
+    @Override
     public ImmutableAttributes getAttributes() {
         assert cachedAttributes != null;
         return cachedAttributes;

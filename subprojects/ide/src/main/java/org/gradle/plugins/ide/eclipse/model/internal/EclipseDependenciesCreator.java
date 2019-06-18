@@ -27,9 +27,11 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
@@ -50,7 +52,6 @@ import java.util.List;
 import java.util.Set;
 
 public class EclipseDependenciesCreator {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(EclipseDependenciesCreator.class);
     private final EclipseClasspath classpath;
     private final ProjectDependencyBuilder projectDependencyBuilder;
@@ -99,9 +100,16 @@ public class EclipseDependenciesCreator {
         @Override
         public void visitProjectDependency(ResolvedArtifactResult artifact) {
             ProjectComponentIdentifier componentIdentifier = (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
-            if (!componentIdentifier.equals(currentProjectId)) {
-                projects.add(projectDependencyBuilder.build(componentIdentifier));
+            if (componentIdentifier.equals(currentProjectId)) {
+                return;
             }
+            Usage usage = artifact.getVariant().getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE);
+            if (usage == null || !usage.getName().equals(Usage.JAVA_RUNTIME_JARS)) {
+                return;
+            }
+            ComponentArtifactMetadata artifactId = (ComponentArtifactMetadata) artifact.getId();
+            // TODO: Add handling for Test-only dependencies once https://github.com/gradle/gradle/pull/9484 is merged
+            projects.add(projectDependencyBuilder.build(componentIdentifier, classpath.getFileReferenceFactory().fromFile(artifact.getFile()), artifactId.getBuildDependencies()));
         }
 
         @Override

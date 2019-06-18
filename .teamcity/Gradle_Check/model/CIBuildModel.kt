@@ -96,6 +96,7 @@ data class CIBuildModel (
             GradleSubproject("antlr"),
             GradleSubproject("baseServices"),
             GradleSubproject("baseServicesGroovy", functionalTests = false),
+            GradleSubproject("bootstrap", unitTests = false, functionalTests = false),
             GradleSubproject("buildCache"),
             GradleSubproject("buildCacheHttp"),
             GradleSubproject("buildCachePackaging"),
@@ -139,6 +140,7 @@ data class CIBuildModel (
             GradleSubproject("native"),
             GradleSubproject("osgi"),
             GradleSubproject("persistentCache"),
+            GradleSubproject("pineapple", functionalTests = false),
             GradleSubproject("platformBase"),
             GradleSubproject("platformJvm"),
             GradleSubproject("platformNative"),
@@ -167,6 +169,7 @@ data class CIBuildModel (
             GradleSubproject("toolingNative", unitTests = false, functionalTests = false, crossVersionTests = true),
             GradleSubproject("versionControl"),
             GradleSubproject("workers"),
+            GradleSubproject("worker-processes", unitTests = false, functionalTests = false),
             GradleSubproject("wrapper", crossVersionTests = true),
 
             GradleSubproject("soak", unitTests = false, functionalTests = false),
