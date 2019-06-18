@@ -19,7 +19,6 @@ package org.gradle.api.internal.file.collections
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.internal.Factory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.UsesNativeServices
 
@@ -57,8 +56,7 @@ class DirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectoryWalker> {
         file2 << '12345'
         def file3 = rootDir.createFile("a/b/3.txt")
         file3 << '12345'
-        def walkerInstance = new DefaultDirectoryWalker(TestFiles.fileSystem())
-        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory, TestFiles.fileSystem(), false)
+        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), TestFiles.fileSystem(), false)
         def visitedFiles = []
         def visitedDirectories = []
         def fileVisitor = [visitFile: { visitedFiles << it }, visitDir: { visitedDirectories << it }] as FileVisitor
@@ -83,7 +81,7 @@ class DirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectoryWalker> {
         def visited = []
         def visitClosure = { visited << it.file.absolutePath }
         def fileVisitor = [visitFile: visitClosure, visitDir: visitClosure] as FileVisitor
-        def fileTree = new DirectoryFileTree(rootDir, patternSet, { walkerInstance } as Factory, TestFiles.fileSystem(), false)
+        def fileTree = new DirectoryFileTree(rootDir, patternSet, TestFiles.fileSystem(), false)
         fileTree.visit(fileVisitor)
         return visited
     }
